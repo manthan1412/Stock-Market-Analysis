@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+message Profile {
+    string last_updated = 1;
+    bool ongoing = 2;
+    string script_updated = 3;
+    string version = 4;
+
+    enum IntervalType {
+        _5M = 0;
+        _15M = 1;
+        _60M = 2;
+        _4H = 3;
+        _1D = 4;
+        _1W = 5;
+    }
+
+    message TypeAndAge {
+        int32 age = 1;
+        int32 type = 2;
+    }
+
+    message PrimaryData {
+        float price = 1;
+        string time = 2;
+        TypeAndAge type_age = 3;
+    }
+
+    message BungeeData {
+        int32 y = 1;
+        int32 g = 2;
+        int32 r = 3;
+        int32 b = 4;
+    }
+
+    message IntervalData {
+        IntervalType interval = 1;
+        string wave_rating = 2;
+        bool divergence_symbol = 3;
+        PrimaryData primary = 4;
+        int32 secondary = 5;
+        TypeAndAge rsi_threshold = 6;
+        TypeAndAge candlestick_shape = 7;
+        TypeAndAge sma_cross = 8;
+        BungeeData bungee = 9;
+        TypeAndAge royal_signal = 10;
+    }
+
+    message Tickers {
+        string ticker = 1;
+        float price = 2;
+        string next_earning_date = 3;
+        float change = 4;
+        int64 last30days_avg_volume = 5;
+        int64 last_day_volume = 6;
+        int32 position = 7;
+        string note = 8;
+        string note_updated = 9;
+        int32 rating = 10;
+        string grade = 11;
+        float target_value = 12;
+        bool watch_list = 13;
+        repeated IntervalData interval_data = 14;
+        //map<string, IntervalData> interval_data = 15;
+    }
+    repeated Tickers tickers = 5;
+}
