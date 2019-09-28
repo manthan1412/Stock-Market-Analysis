@@ -6,6 +6,7 @@ import re
 import requests
 import socket
 import subprocess
+import sys
 import threading
 import time
 import traceback
@@ -283,7 +284,7 @@ class NotificationData:
 class Util:
 
     def __init__(self, socket_connection=True, args=None, auto_commit=False):
-        self.args = self.__parse_arguments() if args is None else args
+        self.args = self.parse_arguments() if args is None else args
         self.__at_start()
         self.conn = self.__get_db_connection()
         self.conn.autocommit = auto_commit
@@ -298,12 +299,22 @@ class Util:
         self.remove_notification_sent = set()
         self.dev_email = os.environ['DEV_EMAIL']
 
+    def parse_arguments(self):
+        self.parser = argparse.ArgumentParser()
+        return self.__parse_arguments(self.parser)
+
     def set_arguments(self, args):
         self.args = args
 
+    def print_arguments(self):
+        self.parser.print_help()
+
+    def print_arguments_and_exit(self):
+        self.parser.print_help(sys.stderr)
+        sys.exit(1)
+
     @staticmethod
-    def __parse_arguments():
-        parser = argparse.ArgumentParser()
+    def __parse_arguments(parser):
         parser.add_argument("-a", "--datapoints_per_second", type=str, default="200",
                             help="Max datapoints to fetch from iqfeed per second")
         parser.add_argument("-b", "--start_time", type=str, default="",
@@ -313,6 +324,8 @@ class Util:
         parser.add_argument("-e", "--dev", action="store_true", default=False, help="Developer mode")
         parser.add_argument("-f", "--fetch", action="store_true", default=False,
                             help="Just fetch data and do not store in database")
+        parser.add_argument("-g", "--update_tickers", action="store_true", default=False,
+                            help="Fetch new data. Store or not to store in database will be decided flag fetch.")
         parser.add_argument("-i", "--daily", type=int, nargs="+", default=[],
                             help="Daily or weekly interval. The value can be 1 or 7")
         parser.add_argument("-k", "--tick_interval", action="store_true", default=False,
@@ -325,7 +338,7 @@ class Util:
         parser.add_argument("-p", "--prints", action="store_true", default=False, help="Print everything")
         parser.add_argument("-q", "--table_name", type=str, default="stocks_iqfeedstatus", help="IQfeed status table")
         parser.add_argument("-r", "--version", type=str, default="6.0.0.5", help="IQfeed version")
-        parser.add_argument("-s", "--signal", action="store_true", default=False, help="Update signal only mode")
+        parser.add_argument("-s", "--update_signals", action="store_true", default=False, help="Update signal data.")
         parser.add_argument("-t", "--timeframes", type=int, nargs="+", default=[], help="Time frames to fetch")
         parser.add_argument("-u", "--cut", type=int, default=0, help="Cut to number of tickers")
         parser.add_argument("-v", "--token", type=str, default="", help="Authorization token of user")

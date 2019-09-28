@@ -148,19 +148,22 @@ def fetch_data(interval_to_fetch, current_time, tickers, tickers_id):
 def main():
     to_fetch, current_time, expected_length, create_4hour = util.get_timeframes_to_fetch()
     tickers, tickers_id = util.get_tickers()
-    if not args.signal:
+    if not args.update_tickers and not args.update_signals:
+        util.print_msg("You should consider using update_tickers or update_signals flag.")
+        util.print_arguments_and_exit()
+    if args.update_tickers:
         util.print_msg("Fetching intervals: ", to_fetch, " 4 hour:", create_4hour)
         fetch_data(to_fetch, current_time, tickers, tickers_id)
         if create_4hour:
             # create_4hr_settings['start_time'] = str(create_4hr_settings['start_time'].replace(tzinfo=None))
             DataCreator([create_4hr_settings], util, tickers, tickers_id).start()
-    else:
-        util.print_msg("Updating intervals: ", to_fetch, " 4 hour:", create_4hour)
     if args.new:
-        util.print_msg('new tickers are added')
-    if create_4hour:
-        to_fetch.append(240)
-    update_signals(util, tickers, tickers_id, [interval_map[interval] for interval in to_fetch])
+        util.print_msg('New tickers are added')
+    if args.update_signals:
+        if create_4hour:
+            to_fetch.append(240)
+        util.print_msg("Updating intervals: ", to_fetch)
+        update_signals(util, tickers, tickers_id, [interval_map[interval] for interval in to_fetch])
     util.update_next_earning_date()
     util.update_time(current_time)
     util.close()
