@@ -164,8 +164,8 @@ def main():
             to_fetch.append(240)
         util.print_msg("Updating intervals: ", to_fetch)
         update_signals(util, tickers, tickers_id, [interval_map[interval] for interval in to_fetch])
+        util.update_time(current_time)
     util.update_next_earning_date()
-    util.update_time(current_time)
     util.close()
 
 
