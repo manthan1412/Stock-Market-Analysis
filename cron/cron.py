@@ -167,6 +167,7 @@ def main():
         util.update_time(current_time)
     util.update_next_earning_date()
     util.close()
+    util.print_msg("Finished running cron script started at", current_time)
 
 
 if __name__ == '__main__':

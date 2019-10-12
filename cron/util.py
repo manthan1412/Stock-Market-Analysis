@@ -291,7 +291,7 @@ class Util:
         self.cursor = self.conn.cursor()
         self.tickers, self.tickers_id = self.__get_tickers()
         self.reverse_tickers_id = {v: k for k, v in self.tickers_id.items()}
-        self.sock = self.__get_iqfeed_socket_connection() if socket_connection else None
+        self.sock = self.get_iqfeed_socket_connection(socket_connection)
         self.ticker_to_users = self.__get_ticker_user_dict()
         self.user_details = self.__get_user_details()
         self.notification_data = None
@@ -302,6 +302,11 @@ class Util:
     def parse_arguments(self):
         self.parser = argparse.ArgumentParser()
         return self.__parse_arguments(self.parser)
+
+    def get_iqfeed_socket_connection(self, need_socket_connection):
+        if need_socket_connection and self.args.update_tickers:
+            return self.__get_iqfeed_socket_connection()
+        return None
 
     def set_arguments(self, args):
         self.args = args
