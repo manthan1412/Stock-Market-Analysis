@@ -286,18 +286,23 @@ class Util:
     def __init__(self, socket_connection=True, args=None, auto_commit=False):
         self.args = self.parse_arguments() if args is None else args
         self.__at_start()
-        self.conn = self.__get_db_connection()
-        self.conn.autocommit = auto_commit
-        self.cursor = self.conn.cursor()
-        self.tickers, self.tickers_id = self.__get_tickers()
-        self.reverse_tickers_id = {v: k for k, v in self.tickers_id.items()}
+        self.conn = None
+        self.__init_database(auto_commit)
         self.sock = self.get_iqfeed_socket_connection(socket_connection)
-        self.ticker_to_users = self.__get_ticker_user_dict()
-        self.user_details = self.__get_user_details()
         self.notification_data = None
         self.notification_is_sent = set()
         self.remove_notification_sent = set()
         self.dev_email = os.environ['DEV_EMAIL']
+
+    def __init_database(self, auto_commit):
+        if self.args.db_connection:
+            self.conn = self.__get_db_connection()
+            self.conn.autocommit = auto_commit
+            self.cursor = self.conn.cursor()
+            self.tickers, self.tickers_id = self.__get_tickers()
+            self.reverse_tickers_id = {v: k for k, v in self.tickers_id.items()}
+            self.ticker_to_users = self.__get_ticker_user_dict()
+            self.user_details = self.__get_user_details()
 
     def parse_arguments(self):
         self.parser = argparse.ArgumentParser()
@@ -317,6 +322,13 @@ class Util:
     def print_arguments_and_exit(self):
         self.parser.print_help(sys.stderr)
         sys.exit(1)
+
+    @staticmethod
+    def add_bool_arg(parser, name, default=False):
+        group = parser.add_mutually_exclusive_group(required=False)
+        group.add_argument('--' + name, dest=name, action='store_true')
+        group.add_argument('--no-' + name, dest=name, action='store_false')
+        parser.set_defaults(**{name:default})
 
     @staticmethod
     def __parse_arguments(parser):
@@ -354,6 +366,7 @@ class Util:
                             help="Update earning date from yahoo api")
         parser.add_argument("-z", "--tickers", type=str, nargs="+", default=[],
                             help="List of tickers to load. If not provided loads all tickers.")
+        Util.add_bool_arg(parser, 'db_connection', default=True)
         try:
             args = parser.parse_args()
             if args.prints:
@@ -979,7 +992,19 @@ class Util:
     def query_rollback(self):
         self.cursor.execute("rollback")
 
-    def close(self):
+    def test_iqfeed_connection(self):
+        message = "HTD\r\n"
+        self.send_to_socket(message.encode("utf-8"))
+
+        # expect to receive error message from sock if iqfeed connection is working fine,
+        # it will go into waiting state otherwise.
+        buffer = self.receive_from_socket(recv_buffers=4096)
+        return True
+
+    def close(self, *msg):
         if self.sock:
             self.sock.shutdown(socket.SHUT_RDWR)
-        self.conn.close()
+        if self.conn is not None:
+            self.conn.close()
+        self.print_msg(*msg)
+        sys.exit()

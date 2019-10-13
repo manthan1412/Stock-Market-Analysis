@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo
-date
+. /home/rdepaola/myproject/scripts/at_start.sh
+
+at_start
 echo "Cron received arguments": $@
-source /home/rdepaola/myproject/environments/environment.sh
 /home/rdepaola/myproject/myprojectenv/bin/python /home/rdepaola/myproject/cron/cron.py "$@"

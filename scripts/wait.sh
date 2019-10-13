@@ -1,9 +1,7 @@
 #!/bin/bash
 
-. /home/rdepaola/myproject/scripts/at_start.sh
-
 wait() {
-    wait_loop=290
+    wait_loop=15
     loop_time=1
     status=$(pgrep -f "$1")
     while [ $? -eq 0 ]
@@ -18,6 +16,3 @@ wait() {
         status=$(pgrep -f "$1")
     done
 }
-
-at_start
-/home/rdepaola/myproject/myprojectenv/bin/python /home/rdepaola/myproject/cron/iqfeed_status.py --version 6.0.0.5 --table_name stocks_iqfeedstatus & wait "iqfeed_status.py"

@@ -37,12 +37,10 @@ def check_iq_feed_status():
         util.report_fault('Seems like IQFeed is in idle state or not working. Trying to restart.', app_notification=True)
         util.start_iqfeed()
     util.establish_iqfeed_socket_connection()
-    message = "HTD\r\n"
-    util.send_to_socket(message.encode("utf-8"))
 
-    # expect to receive error message from sock if iqfeed connection is working fine,
+    # expect to receive True if iqfeed connection is working fine,
     # it will go into waiting state otherwise.
-    buffer = util.receive_from_socket(recv_buffers=4096)
+    util.test_iqfeed_connection()
     update_last_on_iqfeed_time(util, current_time, has_data, args)
     if was_okay is False:
         util.report_fault('IQFeed restarted successfully.', app_notification=True)

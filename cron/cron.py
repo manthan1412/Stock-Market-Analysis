@@ -1,9 +1,9 @@
+import signals
 import traceback
 from data_creator import DataCreator
 from datetime import datetime
 from messages import MessageParameters, IntervalType
 from psycopg2 import IntegrityError
-from signals import main_signal, second_signal, update_signals
 from util import Util
 
 util = Util()
@@ -145,30 +145,45 @@ def fetch_data(interval_to_fetch, current_time, tickers, tickers_id):
                 return
 
 
-def main():
-    to_fetch, current_time, expected_length, create_4hour = util.get_timeframes_to_fetch()
-    tickers, tickers_id = util.get_tickers()
-    if not args.update_tickers and not args.update_signals:
-        util.print_msg("You should consider using update_tickers or update_signals flag.")
-        util.print_arguments_and_exit()
+def update_tickers(to_fetch, create_4hour, current_time, expected_length):
     if args.update_tickers:
+        tickers, tickers_id = util.get_tickers()
         util.print_msg("Fetching intervals: ", to_fetch, " 4 hour:", create_4hour)
         fetch_data(to_fetch, current_time, tickers, tickers_id)
         if create_4hour:
             # create_4hr_settings['start_time'] = str(create_4hr_settings['start_time'].replace(tzinfo=None))
             DataCreator([create_4hr_settings], util, tickers, tickers_id).start()
-    if args.new:
-        util.print_msg('New tickers are added')
+        util.update_next_earning_date()
+
+
+def update_signals(to_fetch, create_4hour, current_time):
+    tickers, tickers_id = util.get_tickers()
     if args.update_signals:
         if create_4hour:
             to_fetch.append(240)
         util.print_msg("Updating intervals: ", to_fetch)
-        update_signals(util, tickers, tickers_id, [interval_map[interval] for interval in to_fetch])
+        signals.update_signals(util, tickers, tickers_id, [interval_map[interval] for interval in to_fetch])
         util.update_time(current_time)
-    util.update_next_earning_date()
-    util.close()
-    util.print_msg("Finished running cron script started at", current_time)
+
+        if args.new:
+            util.print_msg('New tickers are added')
+
+
+def main():
+    if args.db_connection is False:
+        util.test_iqfeed_connection()
+        util.close("DB Connection is off. So exiting the script. The intention of using this is to connect to IQfeed socket as it drops if it's idle.")
+
+    if not args.update_tickers and not args.update_signals:
+        util.print_msg("You should consider using update_tickers or update_signals flag.")
+        util.print_arguments_and_exit()
+
+    to_fetch, current_time, expected_length, create_4hour = util.get_timeframes_to_fetch()
+    update_tickers(to_fetch, create_4hour, current_time, expected_length)
+    update_signals(to_fetch, create_4hour, current_time)
+    util.close("Finished running cron script started at", current_time)
 
 
 if __name__ == '__main__':
     main()
+
