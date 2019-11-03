@@ -916,7 +916,7 @@ class Util:
 
     @staticmethod
     def localize(given_time):
-        return local_tz.localize(given_time, is_dst=None)
+        return local_tz.localize(given_time, is_dst=False)
 
     @staticmethod
     def get_percent_change(a, b):
@@ -993,12 +993,13 @@ class Util:
         self.cursor.execute("rollback")
 
     def test_iqfeed_connection(self):
-        message = "HTD\r\n"
+        message = "HIT,FB,900,20191101 200000,20191103 004500,,,,0,,100,s\r\n"
         self.send_to_socket(message.encode("utf-8"))
 
         # expect to receive error message from sock if iqfeed connection is working fine,
         # it will go into waiting state otherwise.
         buffer = self.receive_from_socket(recv_buffers=4096)
+        self.log(buffer)
         return True
 
     def close(self, *msg):

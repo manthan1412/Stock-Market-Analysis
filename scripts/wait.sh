@@ -1,7 +1,7 @@
 #!/bin/bash
 
 wait() {
-    wait_loop=15
+    wait_loop=22
     loop_time=1
     status=$(pgrep -f "$1")
     while [ $? -eq 0 ]

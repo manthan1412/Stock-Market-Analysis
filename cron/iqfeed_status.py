@@ -12,10 +12,11 @@ def was_iqfeed_okay(cursor, current_time, args):
     data = util.query_select("select last_on from {0} where version='{1}' order by last_on desc limit 1".format(args.table_name, args.version))
     util.log(data)
     if not data or not data[0]:
-        return False, False
+        return False, False, float('inf')
     last_time = data[0][0]
     util.log("Last on ", current_time - last_time, "minutes ago")
-    return True, False if (current_time - last_time).seconds > script_run_time else True
+    last_online_minutes_ago = (current_time - last_time).seconds
+    return True, last_online_minutes_ago <= script_run_time, last_online_minutes_ago
 
 
 def update_last_on_iqfeed_time(util, current_time, has_data, args):
@@ -30,11 +31,11 @@ def check_iq_feed_status():
     current_time = util.localize(current_time - relativedelta(seconds=current_time.second, microseconds=current_time.microsecond))
     args = util.get_args()
     args.do_not_store = not args.fetch
-    has_data, was_okay = was_iqfeed_okay(util, current_time, args)
+    has_data, was_okay, last_online_minutes_ago = was_iqfeed_okay(util, current_time, args)
     util.log("Has data:", has_data, "\tWas okay:", was_okay)
 
     if was_okay is False:
-        util.report_fault('Seems like IQFeed is in idle state or not working. Trying to restart.', app_notification=True)
+        util.report_fault('Seems like IQFeed is in idle state or not working. Trying to restart.', app_notification=last_online_minutes_ago>2*script_run_time)
         util.start_iqfeed()
     util.establish_iqfeed_socket_connection()
 
