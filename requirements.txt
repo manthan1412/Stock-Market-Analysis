@@ -12,7 +12,7 @@ djangorestframework-jwt==1.11.0
 gunicorn==19.7.1
 idna==2.6
 intriniorealtime==2.0.0
-numpy==1.14.0
+numpy==1.22.0
 oauthlib==2.0.6
 pandas==0.22.0
 protobuf==3.7.1
